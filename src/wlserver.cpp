@@ -1292,8 +1292,19 @@ void gamescope_xwayland_server_t::set_wl_id( struct wlserver_x11_surface_info *s
 	else
 	{
 		struct wl_resource *resource = wl_client_get_object( xwayland_server->client, id );
-		if ( resource != nullptr )
-			wlr_surf = wlr_surface_from_resource( resource );
+
+		if ( resource == nullptr )
+			return;
+
+		// TODO: this is actually wrong because this could just happen to be a
+		// surface, but not the one we expect, as the IDs got re-used.
+		if ( !wlr_surface_check_resource(resource) )
+		{
+			wl_log.errorf("Resource with wl_id %u is not a surface.", id);
+			return;
+		}
+
+		wlr_surf = wlr_surface_from_resource( resource );
 	}
 
 	if ( wlr_surf != nullptr )
